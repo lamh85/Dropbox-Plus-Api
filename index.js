@@ -10,6 +10,7 @@ var Dropbox = require('dropbox').Dropbox;
 // Other
 require('dotenv').config();
 
+const DROPBOX_INSTANCE = 'DROPBOX_INSTANCE'
 
 app.get('/', (req, res) => {
   var DROPBOX_ACCOUNT_ACCESS_TOKEN = process.env.DROPBOX_ACCOUNT_ACCESS_TOKEN;
@@ -18,13 +19,19 @@ app.get('/', (req, res) => {
   // http://dropbox.github.io/dropbox-sdk-js/tutorial-Authentication.html
   // https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/auth/index.html
 
-  var dbx = new Dropbox({ accessToken: DROPBOX_ACCOUNT_ACCESS_TOKEN, fetch: fetch });
+  var dropboxInstance = new Dropbox({ accessToken: DROPBOX_ACCOUNT_ACCESS_TOKEN, fetch: fetch });
 
-  dbx.setClientId(DROPBOX_ACCOUNT_CLIENT_ID)
-  var authUrl = dbx.getAuthenticationUrl('http://localhost:8080/auth')
-  console.log(dbx)
+  dropboxInstance.setClientId(DROPBOX_ACCOUNT_CLIENT_ID)
+  var authUrl = dropboxInstance.getAuthenticationUrl('http://localhost:8080/auth')
+  app.set(DROPBOX_INSTANCE, dropboxInstance)
+  console.log(dropboxInstance)
 
-  res.send(JSON.stringify(dbx))
+  res.send(JSON.stringify(dropboxInstance))
+})
+
+app.get('/folder', (req, res) => {
+  const dropboxInstance = app.get(DROPBOX_INSTANCE)
+  req.body
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
