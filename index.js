@@ -2,15 +2,30 @@
 const express = require('express')
 const app = express()
 const port = 3000
+const cors = require('cors')
 
 // Dropbox
 require('isomorphic-fetch');
 var Dropbox = require('dropbox').Dropbox;
+const DROPBOX_INSTANCE = 'DROPBOX_INSTANCE'
 
-// Other
+// Environmental Variables
 require('dotenv').config();
 
-const DROPBOX_INSTANCE = 'DROPBOX_INSTANCE'
+// CORS
+var corsOptions = {
+  origin: function (origin, callback) {
+    console.log('this is origin: ==========')
+    console.log(typeof origin)
+    console.log(origin)
+    if (origin === 'http://localhost:8080') {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+app.use(cors(corsOptions))
 
 app.get('/', (req, res) => {
   var DROPBOX_ACCOUNT_ACCESS_TOKEN = process.env.DROPBOX_ACCOUNT_ACCESS_TOKEN;
@@ -24,14 +39,23 @@ app.get('/', (req, res) => {
   dropboxInstance.setClientId(DROPBOX_ACCOUNT_CLIENT_ID)
   var authUrl = dropboxInstance.getAuthenticationUrl('http://localhost:8080/auth')
   app.set(DROPBOX_INSTANCE, dropboxInstance)
+  // List all methods
   console.log(dropboxInstance)
+
+  // Test the GET folder content
+  const content = dropboxInstance.filesListFolder({path: ''})
+  content.then(response => {
+    console.log(response)
+  })
 
   res.send(JSON.stringify(dropboxInstance))
 })
 
 app.get('/folder', (req, res) => {
-  const dropboxInstance = app.get(DROPBOX_INSTANCE)
-  req.body
+  // const dropboxInstance = app.get(DROPBOX_INSTANCE)
+  // req.body
+  console.log(req.query)
+  res.send(req.query)
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
