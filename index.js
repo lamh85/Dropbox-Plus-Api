@@ -62,7 +62,7 @@ app.get('/', (req, res) => {
 
 app.get('/folder', (req, res) => {
   const pathDecoded = decodeURI(req.query.path)
-  const pathTrimmed = pathDecoded[1] === '/' ? pathDecoded : `${'/'}${pathDecoded}`
+  const pathTrimmed = pathDecoded[0] === '/' ? pathDecoded : `${'/'}${pathDecoded}`
 
   const dropboxInstance = getDropboxInstance()
   const dropboxResponse = dropboxInstance.filesListFolder({ path: pathTrimmed })
