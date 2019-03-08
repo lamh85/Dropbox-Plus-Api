@@ -66,10 +66,10 @@ app.get('/folder', (req, res) => {
 
   const dropboxInstance = getDropboxInstance()
   const dropboxResponse = dropboxInstance.filesListFolder({ path: pathTrimmed })
-
+// return res.send('hello')
   dropboxResponse.then(response => {
     console.log(response)
-    res.send(response)
+    return res.send(response)
   })
 })
 
