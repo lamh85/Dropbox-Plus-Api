@@ -12,16 +12,16 @@ const Dropbox = require('dropbox').Dropbox;
 require('dotenv').config();
 
 // CORS
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (origin === 'http://localhost:8080') {
-      callback(null, true)
-    } else {
-      callback(new Error('Not allowed by CORS'))
-    }
-  }
-}
-app.use(cors(corsOptions))
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (origin === 'http://localhost:3000') {
+//       callback(null, true)
+//     } else {
+//       callback(new Error('Not allowed by CORS'))
+//     }
+//   }
+// }
+// app.use(cors(corsOptions))
 
 // Get Dropbox Instance
 const DROPBOX_INSTANCE = 'DROPBOX_INSTANCE'
@@ -49,15 +49,14 @@ app.get('/', (req, res) => {
 
   const dropboxInstance = getDropboxInstance()
   // List all methods
-  console.log(dropboxInstance)
+  // console.log(dropboxInstance)
 
   // Test the GET folder content
   const content = dropboxInstance.filesListFolder({path: ''})
   content.then(response => {
     console.log(response)
+    res.send(response)
   })
-
-  res.send(JSON.stringify(dropboxInstance))
 })
 
 app.get('/folder', (req, res) => {
