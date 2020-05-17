@@ -2,29 +2,79 @@
 const express = require('express')
 const app = express()
 const port = 3000
+const cors = require('cors')
 
 // Dropbox
 require('isomorphic-fetch');
-var Dropbox = require('dropbox').Dropbox;
+const Dropbox = require('dropbox').Dropbox;
 
-// Other
+// Environmental Variables
 require('dotenv').config();
 
+// CORS
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (origin === 'http://localhost:8080') {
+      callback(null, true)
+    } else {
+      callback(new Error('Not allowed by CORS'))
+    }
+  }
+}
+app.use(cors(corsOptions))
+
+// Get Dropbox Instance
+const DROPBOX_INSTANCE = 'DROPBOX_INSTANCE'
+app.set(DROPBOX_INSTANCE, null)
+const getDropboxInstance = () => {
+  const storedInstance = app.get(DROPBOX_INSTANCE)
+
+  if (!!storedInstance) {
+    return storedInstance
+  }
+
+  const DROPBOX_ACCOUNT_ACCESS_TOKEN = process.env.DROPBOX_ACCOUNT_ACCESS_TOKEN;
+  const DROPBOX_ACCOUNT_CLIENT_ID = process.env.DROPBOX_ACCOUNT_CLIENT_ID;
+  const dropboxInstance = new Dropbox({ accessToken: DROPBOX_ACCOUNT_ACCESS_TOKEN, fetch: fetch });
+  dropboxInstance.setClientId(DROPBOX_ACCOUNT_CLIENT_ID)
+  const authUrl = dropboxInstance.getAuthenticationUrl('http://localhost:8080/auth')
+  app.set(DROPBOX_INSTANCE, dropboxInstance)
+  return dropboxInstance
+}
 
 app.get('/', (req, res) => {
-  var DROPBOX_ACCOUNT_ACCESS_TOKEN = process.env.DROPBOX_ACCOUNT_ACCESS_TOKEN;
-  var DROPBOX_ACCOUNT_CLIENT_ID = process.env.DROPBOX_ACCOUNT_CLIENT_ID;
 
   // http://dropbox.github.io/dropbox-sdk-js/tutorial-Authentication.html
   // https://github.com/dropbox/dropbox-sdk-js/blob/master/examples/javascript/auth/index.html
 
-  var dbx = new Dropbox({ accessToken: DROPBOX_ACCOUNT_ACCESS_TOKEN, fetch: fetch });
+  const dropboxInstance = getDropboxInstance()
+  // List all methods
+  console.log(dropboxInstance)
 
-  dbx.setClientId(DROPBOX_ACCOUNT_CLIENT_ID)
-  var authUrl = dbx.getAuthenticationUrl('http://localhost:8080/auth')
-  console.log(dbx)
+  // Test the GET folder content
+  const content = dropboxInstance.filesListFolder({path: ''})
+  content.then(response => {
+    console.log(response)
+  })
 
-  res.send(JSON.stringify(dbx))
+  res.send(JSON.stringify(dropboxInstance))
+})
+
+app.get('/folder', (req, res) => {
+  const pathDecoded = decodeURI(req.query.path)
+  const pathTrimmed = pathDecoded[0] === '/' ? pathDecoded : `${'/'}${pathDecoded}`
+
+  const dropboxInstance = getDropboxInstance()
+  const dropboxResponse = dropboxInstance.filesListFolder({ path: pathTrimmed })
+// return res.send('hello')
+  dropboxResponse.then(response => {
+    console.log(response)
+    return res.send(response)
+  })
+})
+
+app.get('/folder_next_page', (req, res) => {
+  // filesListFolderContinue({ cursor: '' })
 })
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`))
